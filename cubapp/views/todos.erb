@@ -1,0 +1,9 @@
+<ul>
+  <% @todos.each do |todo| %>
+    <li>
+      <input type="checkbox" name="todo" value="<%= todo.id %>"
+             <%= 'checked' if todo.done %> />
+
+      <%= todo.description %></li> 
+  <% end %>
+</ul>
