@@ -4,7 +4,19 @@ require "nest"
 
 class User < Struct.new(:id)
   def todos
-    Redis.current.smembers("User:#{id}:todos").map { |id| Todo[id] }
+    # Redis.current.smembers("User:#{id}:todos").map { |id| Todo[id] }
+    ids  = redis.smembers("User:#{id}:todos")
+    atts = redis.pipelined do
+      ids.each { |id| redis.hgetall("Todo:#{id}") }
+    end
+
+    ids.map.with_index do |id, idx|
+      Todo.new(Hash[*atts[idx]]).tap { |todo| todo.id = id }
+    end
+  end
+
+  def redis
+    Redis.current
   end
 end
 
@@ -12,7 +24,7 @@ class Todo
   def self.[](id)
     new(key[id].hgetall).tap { |todo| todo.id = id }
   end
-  
+
   attr_accessor :id
   attr_accessor :description
   attr_accessor :done
